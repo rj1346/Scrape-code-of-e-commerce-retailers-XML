@@ -1,0 +1,497 @@
+<?xml version="1.0" encoding="UTF-8"?>
+              <beans xmlns="http://www.springframework.org/schema/beans"
+                  	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+                  	xsi:schemaLocation=" 
+                  http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd 
+                  http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd">
+                   
+                  
+                   
+                  	<!--For the retailer www.mercateo.fr  --> 
+                   
+                   
+                  	<!--This section Classifies pages -->
+                  	<bean id="PAGE_LAYOUT_CLASSIFIER"
+                  		class="amazon.smt.scrape.classify.XPathBasedPageLayoutClassifier">
+                  		<constructor-arg index="0">
+                  			<util:map>
+                  				<entry key="PRODUCT_DETAIL_PAGE"
+                  					value="//td[contains(@class,'BD02')]//div//text()[normalize-space()]" />
+                  			</util:map>
+                  		</constructor-arg>
+                  	</bean>
+                   
+                   
+                  	<!-- Default cleaner to use to clean the crawled content before scraping. -->
+                  	<bean class="amazon.smt.htmlcleaner.DOMHTMLPageCleaner"
+                  		factory-method="getCleaner" id="JSOUPCLEANER">
+                  		<constructor-arg value="jsoup" />
+                  	</bean>
+                  	<bean class="amazon.smt.htmlcleaner.DOMHTMLPageCleaner"
+                  		factory-method="getCleaner" id="TAGSOUPCLEANER">
+                  		<constructor-arg value="tagsoup" />
+                  	</bean>
+                  	<bean class="java.util.ArrayList" id="CLEANERLIST">
+                  		<constructor-arg>
+                  			<list>
+                  				<ref bean="JSOUPCLEANER" />
+                  				<ref bean="TAGSOUPCLEANER" />
+                  			</list>
+                  		</constructor-arg>
+                  	</bean>
+                   
+                   
+                  	<!--This section assigns a particular scraper for a classified page -->
+                  	<util:map id="SCRAPERS">
+                  		<entry key="PRODUCT_DETAIL_PAGE" value-ref="DETAIL_PAGE_SCRAPER" />
+                  	</util:map>
+                   
+                   
+                  	<!--In this section every scraper is related to the class it should use 
+                  		to scrape and arguments are passed as required -->
+                  	<bean id="DETAIL_PAGE_SCRAPER" class="amazon.smt.scrape.scrapers.SimpleWebpageScraper">
+                  		<constructor-arg index="0"
+                  			ref="DetailPageItemScrapeConfiguration" />
+                  	</bean>
+                   
+                   
+                  	<!--In this section X-path's are written for each data point -->
+                  	<bean id="DetailPageItemScrapeConfiguration" factory-bean="SCRAPE_RULE_FACTORY"
+                  		factory-method="createFromXPath" class="java.util.List">
+                  		<constructor-arg index="0">
+                  			<util:map>
+                   
+                  				<entry key="url" value="//meta/@sourceurl" />
+         
+    	 
+    	 
+                            <entry key="bread_crumb1"
+                            value="(for $bc in (if(string-length(translate(//span[contains(.,'Fabricant:')]//following-sibling::span//a//text()[normalize-space()],'  ','')) &gt; 2) 
+    						
+    											then((
+    													for $bc in ((distinct-values(//span[contains(@itemtype,'Breadcrumb')]//a[not(.=&quot;Page d'accueil&quot;)][not(contains(.,//span[contains(.,'Fabricant:')]//following-sibling::span//a//text()[normalize-space()][not(contains(.,'  '))]))])))
+    								
+    													return 
+    									
+    															for $brand in (//span[contains(.,'Fabricant:')]//following-sibling::span//a//text()[normalize-space()])									
+    															return
+    															$bc[not(lower-case(.)[contains(.,lower-case(translate($brand,'  ','')))] or lower-case(.)=lower-case(translate($brand,'  ','')))][not(matches(.,'Image Exce|Perfect Gr'))])) 
+    						
+    											
+    											else((distinct-values(//span[contains(@itemtype,'Breadcrumb')]//a[not(.=&quot;Page d'accueil&quot;)]))))
+    							
+    							return
+    									for $head in (translate(normalize-space(//td//h1[contains(@class,'fs_3 fw_b')]//text()[normalize-space()]),'|','-'))
+    									
+    									return
+    										$bc[not(normalize-space(.)[contains(.,$head)])])[1]" />
+         
+    	 
+    	 
+    						<entry key="bread_crumb2"
+                            value="(for $bc in (if(string-length(translate(//span[contains(.,'Fabricant:')]//following-sibling::span//a//text()[normalize-space()],'  ','')) &gt; 2) 
+    						
+    											then((
+    													for $bc in ((distinct-values(//span[contains(@itemtype,'Breadcrumb')]//a[not(.=&quot;Page d'accueil&quot;)][not(contains(.,//span[contains(.,'Fabricant:')]//following-sibling::span//a//text()[normalize-space()][not(contains(.,'  '))]))])))
+    								
+    													return 
+    									
+    															for $brand in (//span[contains(.,'Fabricant:')]//following-sibling::span//a//text()[normalize-space()])									
+    															return
+    															$bc[not(lower-case(.)[contains(.,lower-case(translate($brand,'  ','')))] or lower-case(.)=lower-case(translate($brand,'  ','')))][not(matches(.,'Image Exce|Perfect Gr'))])) 
+    						
+    											
+    											else((distinct-values(//span[contains(@itemtype,'Breadcrumb')]//a[not(.=&quot;Page d'accueil&quot;)]))))
+    							
+    							return
+    									for $head in (translate(normalize-space(//td//h1[contains(@class,'fs_3 fw_b')]//text()[normalize-space()]),'|','-'))
+    									
+    									return
+    										$bc[not(normalize-space(.)[contains(.,$head)])])[2]" />
+         
+    	 
+    	 
+    						<entry key="bread_crumb3"
+                            value="(for $bc in (if(string-length(translate(//span[contains(.,'Fabricant:')]//following-sibling::span//a//text()[normalize-space()],'  ','')) &gt; 2) 
+    						
+    											then((
+    													for $bc in ((distinct-values(//span[contains(@itemtype,'Breadcrumb')]//a[not(.=&quot;Page d'accueil&quot;)][not(contains(.,//span[contains(.,'Fabricant:')]//following-sibling::span//a//text()[normalize-space()][not(contains(.,'  '))]))])))
+    								
+    													return 
+    									
+    															for $brand in (//span[contains(.,'Fabricant:')]//following-sibling::span//a//text()[normalize-space()])									
+    															return
+    															$bc[not(lower-case(.)[contains(.,lower-case(translate($brand,'  ','')))] or lower-case(.)=lower-case(translate($brand,'  ','')))][not(matches(.,'Image Exce|Perfect Gr'))])) 
+    						
+    											
+    											else((distinct-values(//span[contains(@itemtype,'Breadcrumb')]//a[not(.=&quot;Page d'accueil&quot;)]))))
+    							
+    							return
+    									for $head in (translate(normalize-space(//td//h1[contains(@class,'fs_3 fw_b')]//text()[normalize-space()]),'|','-'))
+    									
+    									return
+    										$bc[not(normalize-space(.)[contains(.,$head)])])[3]" />
+         
+    	 
+    	 
+    						<entry key="remaining_bread_crumbs"
+                            value="(for $bc in (if(string-length(translate(//span[contains(.,'Fabricant:')]//following-sibling::span//a//text()[normalize-space()],'  ','')) &gt; 2) 
+    						
+    											then((
+    													for $bc in ((distinct-values(//span[contains(@itemtype,'Breadcrumb')]//a[not(.=&quot;Page d'accueil&quot;)][not(contains(.,//span[contains(.,'Fabricant:')]//following-sibling::span//a//text()[normalize-space()][not(contains(.,'  '))]))])))
+    								
+    													return 
+    									
+    															for $brand in (//span[contains(.,'Fabricant:')]//following-sibling::span//a//text()[normalize-space()])									
+    															return
+    															$bc[not(lower-case(.)[contains(.,lower-case(translate($brand,'  ','')))] or lower-case(.)=lower-case(translate($brand,'  ','')))][not(matches(.,'Image Exce|Perfect Gr'))])) 
+    						
+    											
+    											else((distinct-values(//span[contains(@itemtype,'Breadcrumb')]//a[not(.=&quot;Page d'accueil&quot;)]))))
+    							
+    							return
+    									for $head in (translate(normalize-space(//td//h1[contains(@class,'fs_3 fw_b')]//text()[normalize-space()]),'|','-'))
+    									
+    									return
+    										$bc[not(normalize-space(.)[contains(.,$head)])])[position() &gt; 3]" />
+         
+    	
+    	
+    						<entry key="image_url" value="(//img[contains(@src,'.jpg')]//@src|//a[contains(@href,'.jsp')]//@href)[not(contains(.,'no_image'))]" />
+     
+     
+    						
+                            <entry key="title"
+                            value="translate(normalize-space(//td//h1[contains(@class,'fs_3 fw_b')]//text()[normalize-space()]),'|','-')" />
+     
+     
+    						
+    						<entry key="item_number"
+                            value="normalize-space(translate(//*[contains(@class,'fw_b')][contains(.,'du produit:')]//following-sibling::span//text()[normalize-space()],'  ',''))" />
+     
+     
+    						
+    						<entry key="brand_name"
+                            value="//span[contains(.,'Fabricant:') or contains(.,'fabricant:')]//following-sibling::span//a//text()[normalize-space()][not(contains(.,'  ') or contains(.,'n/a'))]" />
+         
+     
+         
+    						<entry key="manufacturer_name"
+                            value="//span[contains(.,'Fabricant:') or contains(.,'fabricant:')]//following-sibling::span//a//text()[normalize-space()][not(contains(.,'  ') or contains(.,'n/a'))]" />
+     
+     
+    						
+    						<entry key="external_id"
+                            value="(//span[contains(@class,'fw_b')][contains(.,'EAN/GTIN:')]//following-sibling::span//text())[normalize-space()][not(contains(.,'information'))][matches(.,'[0-9]+')]" />  
+     
+     
+    				      
+							
+							<entry key="material_type"
+                            value="if(normalize-space(//div[contains(@class,'m5')][contains(.,'material:') or contains(.,'Matriel:') or contains(.,'Matière:') or contains(.,'Matériel')]//following::div//text()))
+then(normalize-space(//div[contains(@class,'m5')][contains(.,'material:') or contains(.,'Matriel:') or contains(.,'Matière:') or contains(.,'Matériel')]//following::div//text()))
+else if(//table//div//text()[normalize-space()][contains(.,'&#45; Matériel')])
+ then(substring-after(//table//div//text()[normalize-space()][contains(.,'&#45; Matériel')],':'))
+else if(//table//div//li[contains(.,'Matériel')])
+  then(substring-after(//table//div//li[contains(.,'Matériel')],':'))
+else(substring-before(substring-after(substring-after(//table//div//text()[normalize-space()][contains(.,'Matériel')],'Matériel'),': '),' '))" />	
+         
+     
+    	 
+						
+    						<entry key="item_length_width_height_weight"
+                            value="if((substring-after(//td[contains(@class,'BD05 B2')]//li[contains(.,'Longueur x Hauteur x Largeur:')],'Longueur x Hauteur x Largeur:'))[normalize-space()]) then ((substring-after(//td[contains(@class,'BD05 B2')]//li[contains(.,'Longueur x Hauteur x Largeur:')],'Longueur x Hauteur x Largeur:'))[normalize-space()]) 
+else if(//h1[contains(.,'Dimensions :')]) then(substring-after(//h1[contains(.,'Dimensions :')],'Dimensions :'))
+else if(//td[contains(@class,'bd05rb')][contains(.,'Dimensions du compartiment')]//following-sibling::td)
+  then(//td[contains(@class,'bd05rb')][contains(.,'Dimensions du compartiment')]//following-sibling::td)
+else if(substring-after(//td[contains(@class,'BD02')]//li[contains(.,'Dimensions :') and contains(.,' x ')],'Dimensions :'))
+  then(substring-after(//td[contains(@class,'BD02')]//li[contains(.,'Dimensions :') and contains(.,' x ')],'Dimensions :'))
+else if(substring-after(//td[contains(@class,'BD02')]//li[contains(.,'Dimensions :') and contains(.,' × ')],'Dimensions :'))
+  then(substring-after(//td[contains(@class,'BD02')]//li[contains(.,'Dimensions :') and contains(.,' × ')],'Dimensions :'))
+else if(//td[contains(@class,'BD02')]//text()[contains(.,'Dimensions :') and contains(.,' mm')]) then(concat(substring-before(substring-after(//td[contains(@class,'BD02')]//text()[contains(.,'Dimensions :') and contains(.,' mm')],'Dimensions :'),'mm'),'mm'))
+else if(//td[contains(@class,'BD02')]//text()[contains(.,'Dimensions :') and contains(.,' cm')]) then(concat(substring-before(substring-after(//td[contains(@class,'BD02')]//text()[contains(.,'Dimensions :') and contains(.,' cm')],'Dimensions :'),'cm'),'cm'))
+else if(//td[contains(@class,'BD02')]//text()[contains(.,'Dimensions externes &#61;')]) then(substring-after(//td[contains(@class,'BD02')]//text()[contains(.,'Dimensions externes &#61;')],'&#61;'))
+else if(//td[contains(@class,'BD02')]//text()[contains(.,'Dimensions &#61;')]) then(substring-after(//td[contains(@class,'BD02')]//text()[contains(.,'Dimensions &#61;')],'Dimensions &#61;'))
+else if(//td[contains(@class,'BD02')]//text()[contains(.,'Dimensions')][contains(.,'l x h x p') or contains(.,'(LxPxH) :')]) 
+                                                        then(substring-after((//td[contains(@class,'BD02')]//text()[contains(.,'Dimensions')][contains(.,'l x h x p') or contains(.,'(LxPxH) :')]),':'))
+else if(//td[contains(@class,'BD02')]//text()[contains(.,'Dimensions')][contains(.,'l x h x p') or contains(.,'LxPxH')]) then((//td[contains(@class,'BD02')]//text()[contains(.,'Dimensions')]//following::text())[contains(.,' x ')][1])
+else if(//text()[contains(.,'Dimensions:') and contains(.,' mm')]) then(concat(substring-before(substring-after(//text()[contains(.,'Dimensions:')],'Dimensions:'),'mm'),'mm'))
+else if(//text()[contains(.,'Dimensions:') and contains(.,' cm')]) then(concat(substring-before(substring-after(//text()[contains(.,'Dimensions:')],'Dimensions:'),'cm'),'cm'))
+else if(//text()[contains(.,'Dimensions:') or contains(.,'Dimensions :')][not(contains(.,' et poids'))]//following::text())  then((//text()[contains(.,'Dimensions')][not(contains(.,' et poids'))]//following::text())[contains(.,' x ')][1])
+else('')" />
+                        
+						
+    					<entry key="item_width"
+                            value="if(normalize-space(//td[contains(@class,'BD05 B2')]//div[(.='Largeur')]//following::td)) then (normalize-space(//td[contains(@class,'BD05 B2')]//div[(.='Largeur')]//following::td)) else(if(//text()[contains(.,'Largeur =') or contains(.,'largeur =') or contains(.,'Width =') or contains(.,'Thickness =')][string-length() &lt; 20])
+    						
+    						then(substring-after(//text()[contains(.,'Largeur =') or contains(.,'largeur =') or contains(.,'Width =') or contains(.,'Thickness =')],'=')[not(matches(.,'g'))][matches(.,'[0-9]+')])
+    						 
+							 else if(normalize-space(//td[contains(@class,'bd05rb')][contains(.,'Largeur') or contains(.,'largeur') or contains(.,'Width') or contains(.,'Thickness')]//following-sibling::td//text()[normalize-space()])[string-length() &lt; 20][not(matches(.,'g'))][matches(.,'[0-9]+')])
+							 then(normalize-space(//td[contains(@class,'bd05rb')][contains(.,'Largeur') or contains(.,'largeur') or contains(.,'Width') or contains(.,'Thickness')]//following-sibling::td//text()[normalize-space()])[string-length() &lt; 20][not(matches(.,'g'))][matches(.,'[0-9]+')])
+							 
+    						else if(//td[contains(@class,'BD02')][contains(.,'Largeur')])
+   then(concat(substring-before(substring-after(//td[contains(@class,'BD02')][contains(.,'Largeur')],'Largeur:'),'mm'),'mm'))
+
+							
+							else(normalize-space(//td[contains(@class,'bd05rb')][contains(.,'Largeur') or contains(.,'largeur') or contains(.,'Width') or contains(.,'Thickness')]//following-sibling::td//text()[normalize-space()])[string-length() &lt; 20][not(matches(.,'g'))][matches(.,'[0-9]+')]))" />				
+
+							
+                          <entry key="item_weight"
+                            value="if(//td[contains(@class,'BD02')]//text()[contains(.,'Poids &#61;')]) then(substring-after(//td[contains(@class,'BD02')]//text()[contains(.,'Poids &#61;')],'Poids &#61; '))
+							else if(substring-before(substring-after(//td[contains(@class,'BD02')][contains(.,'Poids:')],'Poids:'),'&#183;'))
+    then(substring-before(substring-after(//td[contains(@class,'BD02')][contains(.,'Poids:')],'Poids:'),'&#183;'))
+							
+							else if(substring-before(substring-after(//td[contains(@class,'BD02')][contains(.,'poids:')],'poids:'),'&#44;&#32;'))
+    then(substring-before(substring-after(//td[contains(@class,'BD02')][contains(.,'poids:')],'poids:'),'&#44;&#32;'))
+                              
+							else if(substring-after(//td[contains(@class,'BD02')]//text()[contains(.,'Poids:')],'Poids:')) then(substring-after(//td[contains(@class,'BD02')]//text()[contains(.,'Poids:')],'Poids:'))
+							
+							else if((normalize-space(//td[contains(@class,'BD05 B2')]//div[(.='Poids')]//following::td))) then((normalize-space(//td[contains(@class,'BD05 B2')]//div[(.='Poids')]//following::td))) 
+						    
+							
+							else(if(//text()[matches(.,'Poids =|poids =|poid =|Poid =')][string-length() &lt; 10])  then(substring-after(//text()[matches(.,'Poids =|poids =|poid =|Poid =')][not(matches(.,'mm|cm'))][matches(.,'[0-9]+')][not(.='0')],'='))
+    						 
+    						else(normalize-space(//td[contains(@class,'bd05rb')][matches(.,'Poids =|poids =|Poids:|poids:|poid =|poid:|Poid:|Poid =|poid|Poid')]//following-sibling::td//text()[normalize-space()][not(matches(.,'mm|cm'))])[string-length() &lt; 20][matches(.,'[0-9]+')][not(.='0')]))" />	
+        					
+    					
+    					  
+    					  <entry key="item_height"
+                            value="if(//td[contains(@class,'bd05rb')][contains(.,'Hauteur')][not(contains(.,'Hauteur du') or contains(.,'Hauteur maximale'))]) then(normalize-space(//td[contains(@class,'bd05rb')][contains(.,'Hauteur')][not(contains(.,'Hauteur du') or contains(.,'Hauteur maximale'))]//following-sibling::td//text()[normalize-space()][not(contains(.,'Oui') or contains(.,'Non'))]))
+							  else if(//text()[contains(.,'Hauteur') and contains(.,'=')]) then(substring-after(//text()[contains(.,'Hauteur') and contains(.,'=')],'='))
+							  else if(//text()[matches(.,'Hauteur =|hauteur =')][string-length() &lt; 10])  then(substring-after(//text()[matches(.,'Hauteur =|hauteur =')],'=')[not(matches(.,'g'))][matches(.,'[0-9]+')])
+    						      else(normalize-space(//td[contains(@class,'bd05rb')][matches(.,'Hauteur =|hauteur =|hauteur:|Hauteur:|Hauteur|auteur')]//following-sibling::td//text()[normalize-space()])[string-length() &lt; 20][not(matches(.,'g'))][matches(.,'[0-9]+')])" />	
+    					
+     
+    					
+    						<entry key="item_length"
+                            value="if(//text()[contains(.,'Longueur = ')]) then(substring-after(//text()[contains(.,'Longueur = ')],'= ')[not(matches(.,'g'))][matches(.,'[0-9]+')])
+							
+							else if(//text()[matches(.,'Longueur  =|longueur  =|Longueur =|longueur =')][string-length() &lt; 10])
+    						then(substring-after(//text()[matches(.,'Longueur  =|longueur  =|Longueur =|longueur =')],'=')[not(matches(.,'g'))][matches(.,'[0-9]+')])
+    						
+							
+ else(normalize-space(//td[contains(@class,'bd05rb')][matches(.,'Longueur =|longueur =|Longueur  =|longueur  =|Longueur :|Longueur:|Longueur |longueur ')]//following-sibling::td//text()[normalize-space()])[string-length() &lt; 20][not(matches(.,'g'))][matches(.,'[0-9]+')])" />	
+         
+    	 
+    	
+    		<entry key="color_name"
+                            value="(if(//td[contains(@class,'bd05rb')][contains(.,'Couleur') and contains(.,'du produit')]) 
+   then(//td[contains(@class,'bd05rb')][contains(.,'Couleur') and contains(.,'du produit')]/following-sibling::td)
+
+else if(//td[contains(@class,'bd05rb')][contains(.,'Couleur:')])
+   then(normalize-space(//td[contains(@class,'bd05rb')][contains(.,'Couleur:')]/following-sibling::td))
+
+else if(substring-after(//td[contains(@class,'BD02')]//text()[contains(.,'&#45; Couleur du produit :')],'&#45; Couleur du produit :'))
+   then(substring-after(//td[contains(@class,'BD02')]//text()[contains(.,'&#45; Couleur du produit :')],'&#45; Couleur du produit :'))
+
+else if(substring-before(substring-after(//td[contains(@class,'BD02')]//text()[contains(.,'Couleur :')],'Couleur :'),'&#183;'))
+   then(substring-before(substring-after(//td[contains(@class,'BD02')]//text()[contains(.,'Couleur :')],'Couleur :'),'&#183;'))
+
+else if(substring-after(//td[contains(@class,'BD02')]//text()[contains(.,'Couleur :')],'Couleur &#45;'))
+   then(substring-after(//td[contains(@class,'BD02')]//text()[contains(.,'Couleur :')],'Couleur &#45;'))
+
+else if(//td[contains(@class,'BD05 B2')][contains(.,'Couleur ') and contains(.,'&#61;')]) 
+   then(substring-after(//td[contains(@class,'BD05 B2')]//text()[contains(.,'Couleur ') and contains(.,'&#61;')],'&#61;'))
+
+else if(//td[contains(@class,'BD05 B2')][contains(.,'Couleur : ') and contains(.,' techniques')]) 
+   then(substring-before(substring-after(//td[contains(@class,'BD05 B2')][contains(.,'Couleur : ') and contains(.,' techniques')],'Couleur : '),' '))
+
+else if(//td[contains(@class,'bd05rb')][contains(.,'Couleur de') or contains(.,'couleur de')]) 
+  then(//td[contains(@class,'bd05rb')][contains(.,'Couleur de') or contains(.,'couleur de')]//following-sibling::td)
+
+
+                                    else('')
+									)[not(contains(.,'Exacompta22090E') or contains(.,'Canon0972C006') or contains(.,'BrotherQL-800'))]"/>
+     
+    		
+    	 
+    						 
+                             <entry key="size_name"
+                            value="(if(//td[contains(@class,'bd05rb')][contains(.,'Taille de l')]) then(//td[contains(@class,'bd05rb')][contains(.,'Taille de l')]/following-sibling::td)
+else if(//td[contains(@class,'bd05rb')][contains(.,'Taille du disque dur')]) then(//td[contains(@class,'bd05rb')][contains(.,'Taille du disque dur')]/following-sibling::td)
+else if(//td[contains(@class,'bd05rb')][contains(.,'Taille d') and contains(.,'recommandée')]) then(//td[contains(@class,'bd05rb')][contains(.,'Taille d') and contains(.,'recommandée')]/following-sibling::td)
+else if(//td[contains(@class,'BD02')]//text()[contains(.,'Taille de') and contains(.,'écran :')])
+  then(substring-after(//td[contains(@class,'BD02')]//text()[contains(.,'Taille de') and contains(.,'écran :')],'écran :'))									
+									else if(normalize-space(//td[contains(@class,'BD05 B2')]//div[contains(.,'&#67;&#97;&#112;&#97;&#99;&#105;&#116;&#233;&#32;&#100;&#105;&#115;&#113;&#117;&#101;&#32;&#100;&#117;&#114;')]//following::td)) then (normalize-space(//td[contains(@class,'BD05 B2')]//div[contains(.,'&#67;&#97;&#112;&#97;&#99;&#105;&#116;&#233;&#32;&#100;&#105;&#115;&#113;&#117;&#101;&#32;&#100;&#117;&#114;')]//following::td)) 
+									else if(normalize-space(//td[contains(@class,'BD05')]//div[contains(.,'Taille') and contains(.,'diagonale')]//following::td)) then (normalize-space(//td[contains(@class,'BD05')]//div[contains(.,'Taille') and contains(.,'diagonale')]//following::td)) 
+									else if(normalize-space(//td[contains(@class,'BD05')]//div[contains(.,'Taille')]//following::td)) then (normalize-space(//td[contains(@class,'BD05')]//div[contains(.,'Taille')]//following::td)) 
+									else if(//table[contains(@class,'fs_2 BD05')]//td[contains(@class,'bd05rb')][(.='Taille:') or (.='taille:') or (.='EN Size:') or (.='EN size:')  or contains(.,'Taille')]//following-sibling::td//text()[normalize-space()]) then(normalize-space(//table[contains(@class,'fs_2 BD05')]//td[contains(@class,'bd05rb')][(.='Taille:') or (.='taille:') or (.='EN Size:') or (.='EN size:') or contains(.,'Taille')]//following-sibling::td//text()[normalize-space()])) 
+									else if((string-length(normalize-space(substring-after(//td[contains(@class,'BD02')]//*[contains(.,'Taille:') or contains(.,'taille:')]//text()[normalize-space()],':'))) &lt; 25) and string-length(normalize-space(substring-after(//td[contains(@class,'BD02')]//*[contains(.,'Taille:') or contains(.,'taille:')]//text()[normalize-space()],':'))) &gt; 1) then(normalize-space(substring-after(//td[contains(@class,'BD02')]//*[contains(.,'Taille:') or contains(.,'taille:')]//text()[normalize-space()],':'))) 
+									else(if(//html[string-length(normalize-space(substring-after(//text()[contains(.,'Taille')],'='))) &lt; 20]) then(normalize-space(substring-after(//text()[contains(.,'Taille')],'='))) 
+									else('')))[not(contains(.,'Go') or contains(.,'Oui'))]" />	
+    	 
+    	
+    				
+    	
+    					
+    							
+    						<entry key="product_description"
+                            value="//td[contains(@class,'BD02')]//div//text()[normalize-space()]" />
+         
+    	 
+    	 
+    						<entry key="additional_product_information"
+                            value="//td[@class='BD02']//div[contains(.,&quot;Plus d'informations:&quot;)]//following::td[@class='bd05rb']//text()[not(contains(.,'&#123;'))]" />
+         
+    	 
+    	 
+    						<entry key="bullet_points"
+                            value="//td[contains(@class,'BD02')]//li//text()[normalize-space()]" />
+         
+    	 
+    	 
+    						<entry key="list_price"
+                            value="normalize-space(replace((if(//div[contains(@class,'m5 fw_b')]//span[contains(.,'&#8364;')])
+    													then (//td[contains(@class,'B14 br_2_03')]//span[contains(@class,'c_3')]//text()[normalize-space()])
+    													else (//td[contains(@class,'B16 c_3 fw_b')]//div[contains(@class,'m5')]//text()[normalize-space()])),'.*(&#8364;[^&#42;]+).*','$1'))" />
+         
+    	 
+    	 
+    						<entry key="our_price"
+    						value="if(normalize-space(replace(replace((if(//div[contains(@class,'m5 fw_b')]//span[contains(.,'&#8364;')])
+    													then (//td[contains(@class,'B14 br_2_03')]//span[contains(@class,'c_3')]//text()[normalize-space()])
+    													else (//td[contains(@class,'B16 c_3 fw_b')]//div[contains(@class,'m5')]//text()[normalize-space()])),'.*(&#8364;[^&#42;]+).*','$1'),' ',''))
+    													
+    													= 
+    													
+    													normalize-space(replace(replace((if
+    														(if(//div[contains(@class,'m5 fw_b')]//span[contains(.,'&#8364;')])
+    														then (//td[contains(@class,'B14 br_2_03')]//span[contains(@class,'c_3')]//text()[normalize-space()])
+    														else (//td[contains(@class,'B16 c_3 fw_b')]//div[contains(@class,'m5')]//text()[normalize-space()])) 
+    													then (//td[contains(@class,'B16 c_1 fw_b')]//div[contains(@class,'m5')]//text()[normalize-space()])
+    													else ''),'.*(&#8364;[^&#42;]+).*','$1'),' ',''))) 
+    								
+    								then('') 
+    									
+    								else(normalize-space(replace((if
+    														(if(//div[contains(@class,'m5 fw_b')]//span[contains(.,'&#8364;')])
+    														then (//td[contains(@class,'B14 br_2_03')]//span[contains(@class,'c_3')]//text()[normalize-space()])
+    														else (//td[contains(@class,'B16 c_3 fw_b')]//div[contains(@class,'m5')]//text()[normalize-space()])) 
+    													then (//td[contains(@class,'B16 c_1 fw_b')]//div[contains(@class,'m5')]//text()[normalize-space()])
+    													else ''),'.*(&#8364;[^&#42;]+).*','$1')))" />
+    			
+    			
+    						<entry key="offering_availability"
+    						value="if(//input[contains(@class,'btn_typ_process btn_icon_cart')])
+    								then 'In Stock'
+    								else 'Out of Stock'" />
+                            
+    						
+    						
+        		           
+    						
+    						
+    						
+    						 <entry key="has_retail_offer" value="if(string-length(replace(//meta/@sourceurl,'.*/p/([^/|\?]+).*','$1')) &gt; 100) then('D') else('Y')"/>
+    						
+    						
+    						
+    						<entry key="website_sku" value="normalize-space(replace(//meta/@sourceurl,'.*/p/([^/|\?]+).*','$1'))"/>
+     
+    						
+    					
+							<entry key="part_number" value="if(//span[contains(@class,'fw_b')][contains(.,'du fabricant:')]//following-sibling::span//text()[normalize-space()][not(contains(.,'n/a') or contains(.,'information'))]) then (//span[contains(@class,'fw_b')][contains(.,'du fabricant:')]//following-sibling::span//text()[normalize-space()][not(contains(.,'n/a') or contains(.,'information'))])
+							                               else('')"/>		
+    						
+     
+     
+     
+    <entry key="item_package_quantity" value="if(//td[contains(@class,'BD05 B2')]//div[contains(.,'Quantité') and not(contains(.,' d'))]//following::td[1][normalize-space()]) then(//td[contains(@class,'BD05 B2')]//div[contains(.,'Quantité') and not(contains(.,' d'))]//following::td[1][normalize-space()])
+	                   else((if ((//div[contains(@class,'c_1')][contains(.,' Pice')])[1][matches(.,'[0-9]+')]) 
+    						then ((//div[contains(@class,'c_1')][contains(.,' Pice')])[1][matches(.,'[0-9]+')])
+                            else if (replace(//td//h1[contains(@class,'fs_3 fw_b')]//text()[contains(.,'Paquet de')][matches(.,'[0-9]+')][normalize-space()],'[^0-9]+([0-9]{1,3}).*','$1'))
+                            then (replace(//td//h1[contains(@class,'fs_3 fw_b')]//text()[contains(.,'Paquet de')][matches(.,'[0-9]+')][normalize-space()],'[^0-9]+([0-9]{1,3}).*','$1'))						
+    						else if(//td[contains(@class,'bd05rb')][contains(.,'Quantit par pack') or contains(.,'Paquet de:') or contains(.,'paquet de:')  or contains(.,'pices:')]//following-sibling::td//text()[normalize-space()][matches(.,'[0-9]+')])
+    						then((//td[contains(@class,'bd05rb')][contains(.,'Quantit par pack') or contains(.,'pices:') or contains(.,'Paquet de:') or contains(.,'paquet de:') ]//following-sibling::td//text()[normalize-space()])[matches(.,'[0-9]+')])
+    						else if (replace(//td[contains(@class,'BD02')]//text()[contains(.,'Paquet de') or contains(.,'paquet de') ][matches(.,'[0-9]+')][normalize-space()],'[^0-9]+([0-9]{1,3}).*','$1'))
+    						then (replace(//td[contains(@class,'BD02')]//text()[contains(.,'Paquet de') or contains(.,'paquet de') ][matches(.,'[0-9]+')][normalize-space()],'[^0-9]+([0-9]{1,3}).*','$1'))
+    						else if (//td[contains(@class,'bd05rb')]//text()[contains(.,&quot;Contenu de l'emballage&quot;)]//following::td[contains(.,'Console') or contains(.,'Oui')])
+    						then ('')
+    						else if (normalize-space(//td[contains(@class,'bd05rb')]//text()[contains(.,&quot;Contenu de l'emballage&quot;)]//following::td[matches(.,'[0-9]+')]))
+    						then (normalize-space(//td[contains(@class,'bd05rb')]//text()[contains(.,&quot;Contenu de l'emballage&quot;)]//following::td[matches(.,'[0-9]+')]))
+    						else if (normalize-space(//td[contains(@class,'bd05rb')]//text()[(.=&quot;Quantit&quot;)]//following::td[matches(.,'[0-9]+')]))
+    						then (normalize-space(//td[contains(@class,'bd05rb')]//text()[(.=&quot;Quantit&quot;)]//following::td[matches(.,'[0-9]+')]))
+    						else if (normalize-space(//td[contains(@class,'bd05rb')]//text()[(.=&quot;Quantit (carton/ externe)&quot;)]//following::td[matches(.,'[0-9]+')]))
+    						then (normalize-space(//td[contains(@class,'bd05rb')]//text()[(.=&quot;Quantit (carton/ externe)&quot;)]//following::td[matches(.,'[0-9]+')]))
+    						else if (normalize-space(substring-before(substring-after(//*[contains(.,'Quantit')],'iquettes ='),'.'))[matches(.,'[0-9]+')])
+    						then (normalize-space(substring-before(substring-after(//*[contains(.,'Quantit')],'iquettes ='),'.'))[matches(.,'[0-9]+')])
+    						else if ((//td[contains(@class,'BD02')]//text()[contains(.,'Nombre inclus')]//following::td)[1][matches(.,'[0-9]+')])
+    						then ((//td[contains(@class,'BD02')]//text()[contains(.,'Nombre inclus')]//following::td)[1][matches(.,'[0-9]+')])
+    						else if ((//td[contains(@class,'BD02')]//text()[contains(.,'Nombre de plaques:')]//following::td)[1][matches(.,'[0-9]+')])
+    						then ((//td[contains(@class,'BD02')]//text()[contains(.,'Nombre de plaques:')]//following::td)[1][matches(.,'[0-9]+')])
+    						else if ((//td[contains(@class,'BD02')]//text()[contains(.,'Contenu:')]//following::td)[1][matches(.,'[0-9]+')])
+    						then ((//td[contains(@class,'BD02')]//text()[contains(.,'Contenu:')]//following::td)[1][matches(.,'[0-9]+')])
+    						else '') [not(contains(.,'{'))][not(contains(.,'&lt;'))][not(contains(.,' x '))][not(contains(.,'-'))][not(contains(.,'mm'))][string-length() &lt; 23])"/>
+    								
+    									   
+    			<entry key="item_sale_status"
+                            value="if((//div[contains(@class,'m5 fs_2')]//div[contains(@title,'État du stock')])[1][not(matches(.,'[0-9]+'))])
+                                          then(normalize-space(//div[contains(@class,'m5 fs_2')]//div[contains(@title,'État du stock')]))
+                                   else('')" />							
+    			
+				
+				<entry key="obs_indicator"
+                            value="if(normalize-space(//div[contains(@class,'m5 fs_2')]//div[contains(@title,'État du stock')][contains(.,'rupture')])) then('rupture') 
+							else if(//div[@class='m5']//@title[contains(.,'rupture')]) then ('rupture')
+							else('')" />							
+    			
+				
+					<entry key="item_depth"
+                            value="if(//td[contains(@class,'bd05rb')][contains(.,'Profondeur') or contains(.,'profondeur')][not(contains(.,'Profondeur du colis') or contains(.,'Profondeur réglable'))]) 
+							        then(normalize-space(//td[contains(@class,'bd05rb')][contains(.,'Profondeur') or contains(.,'profondeur')][not(contains(.,'Profondeur du colis') or contains(.,'Profondeur réglable'))]//following::td[not(contains(.,'Oui'))]))
+							       
+								 else if(//td[contains(@class,'BD05 B2')]//div//text()[normalize-space()][contains(.,'Profondeur') and contains(.,':')])
+								   then(substring-after(//td[contains(@class,'BD05 B2')]//div//text()[normalize-space()][contains(.,'Profondeur') and contains(.,':')],':'))
+								 
+								 else if(//td[contains(@class,'BD05 B2')]//div//text()[normalize-space()][contains(.,'Profondeur') and contains(.,'=')])
+								   then(substring-after(//td[contains(@class,'BD05 B2')]//div//text()[normalize-space()][contains(.,'Profondeur') and contains(.,'=')],'='))
+								 
+								 else if(normalize-space(//td[contains(@class,'BD05 B2')]//div[contains(.,'Profondeur')][not(contains(.,'Profondeur réglable'))]//following::td))
+								  then(normalize-space(//td[contains(@class,'BD05 B2')]//div[contains(.,'Profondeur')][not(contains(.,'Profondeur réglable'))]//following::td))
+								 
+								 else if (normalize-space(//td[contains(@class,'BD05 B2')]//div[contains(.,'Profondeur')]//following::td[contains(.,'Oui')])) 
+								   then (//td[contains(@class,'BD05 B2')]//div[contains(.,'Profondeur') and not(contains(.,' '))]//parent::td//following-sibling::td)[1]
+								
+								else if (normalize-space(//td[contains(@class,'BD05 B2')]//div[contains(.,'Profondeur')]//following::td[contains(.,'Oui')])) 
+								  then ((//td[contains(@class,'BD05 B2')]//div[contains(.,'Profondeur')]//parent::td//following-sibling::td[contains(.,'mm')])[1])
+                                    
+								else(normalize-space(//td[contains(@class,'BD05 B2')]//div[contains(.,'Profondeur')]//following::td))" />
+								   
+                  			
+							</util:map>
+                  		</constructor-arg>
+                  	</bean>
+                   
+                   
+                   
+                  <!--In this section data manipulation is done to extract data from a particular 
+                  		data point using Regular Expression -->
+                  	<util:map id="NORMALIZERS">
+                  		<entry key="PRODUCT_DETAIL_PAGE" value-ref="DETAIL_PAGE_SCRAPE_NORMALIZER" />
+                  	</util:map>
+                   
+                   
+                  	<bean id="DETAIL_PAGE_SCRAPE_NORMALIZER" class="amazon.smt.scrape.normalizer.ScrapeDataNormalizerChain">
+                  		<constructor-arg index="0">
+                  			<util:list>
+        
+     			 
+                  				
+                   <bean class="amazon.smt.scrape.normalizer.ExternalIDNormalizer">
+                  					<constructor-arg index="0" value="external_id" />
+                  					<property name="normalizeFromSource" value="false" />
+                  				</bean>
+                   
+                  				<bean class="amazon.smt.scrape.normalizer.DeleteAttributeNormalizer">
+                  					<constructor-arg index="0">
+                  						<util:set>
+                  							<value>temp_color_name</value> 
+                                            <value>temp_model</value> 										
+                  						</util:set>
+                  					</constructor-arg>
+                  				</bean>
+                   
+                  			</util:list>
+                  		</constructor-arg>
+                  	</bean>
+    </beans>
