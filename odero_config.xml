@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util" xsi:schemaLocation=" http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd">
+	<!--For the retailer www.masteroutillage.com_ots by bhimala -->
+	<!--This section Classifies pages 
+	http://smt-tools.amazon.com/s3resource?id=ee93a09b-5eba-4f89-9e65-25382f831e6a&resourceType=crawledpages&encryption=false-->
+	<bean id="JSOUPCLEANER" class="amazon.smt.htmlcleaner.DOMHTMLPageCleaner" factory-method="getCleaner">
+		<constructor-arg value="jsoup"/>
+	</bean>
+	<bean id="TAGSOUPCLEANER" class="amazon.smt.htmlcleaner.DOMHTMLPageCleaner" factory-method="getCleaner">
+		<constructor-arg value="tagsoup"/>
+	</bean>
+	<bean id="CLEANERLIST" class="java.util.ArrayList">
+		<constructor-arg>
+			<list>
+				<ref bean="JSOUPCLEANER"/>
+				<ref bean="TAGSOUPCLEANER"/>
+			</list>
+		</constructor-arg>
+	</bean>
+	<bean id="PAGE_LAYOUT_CLASSIFIER" class="amazon.smt.scrape.classify.XPathBasedPageLayoutClassifier">
+		<constructor-arg index="0">
+			<util:map>
+				<entry key="PRODUCT_DETAIL_PAGE" value="//h1[contains(@class,'product-title')]" />
+			</util:map>
+		</constructor-arg>
+	</bean>
+	<!--This section assigns a particular scraper for a classified page truffaut.com -->
+	<util:map id="SCRAPERS">
+		<entry key="PRODUCT_DETAIL_PAGE" value-ref="DETAIL_PAGE_SCRAPER" />
+	</util:map>
+	<!--In this section every scraper is related to the class it should use to scrape and arguments are passed as required-->
+	<bean id="DETAIL_PAGE_SCRAPER" class="amazon.smt.scrape.scrapers.SimpleWebpageScraper">
+		<constructor-arg index="0" ref="DetailPageItemScrapeConfiguration" />
+	</bean>
+	<!--In this section X-path's are written for each data point -->
+	<bean id="DetailPageItemScrapeConfiguration" factory-bean="SCRAPE_RULE_FACTORY" factory-method="createFromXPath" class="java.util.List">
+		<constructor-arg index="0">
+			<util:map>
+			
+            				<entry key="title" value="normalize-space(//h1[contains(@class,'product-title')])"/>
+							 
+                             
+            				<entry key="brand_name" value="if(//div[contains(@id,'details-technique')]//td[contains(.,'Mark') or contains(.,'mark') or contains(.,'Marque') or contains(.,'marque')]//following-sibling::td)
+							         then (//div[contains(@id,'details-technique')]//td[contains(.,'Mark') or contains(.,'mark') or contains(.,'Marque') or contains(.,'marque')]//following-sibling::td) 
+							else if(//div[contains(@id,'details-description-container')]//td[contains(.,'Mark') or contains(.,'mark') or contains(.,'Marque') or contains(.,'marque')]//following-sibling::td) 
+							       then(//div[contains(@id,'details-description-container')]//td[contains(.,'Mark') or contains(.,'mark') or contains(.,'Marque') or contains(.,'marque')]//following-sibling::td) 
+						    else if(substring-before(normalize-space(substring-after(//div[contains(@id,'details-description-container')][contains(.,'Marque:')],'Marque:')),' '))
+							      then(substring-before(normalize-space(substring-after(//div[contains(@id,'details-description-container')][contains(.,'Marque:')],'Marque:')),' '))
+							else('')"/>
+                            
+							<entry key="bread_crumb1" value="if((normalize-space(//ol[contains(@class,'breadcrumb')]//li[not(contains(.,'Accueil'))][1])) eq normalize-space(//div[contains(@id,'details-technique')]//td[contains(.,'Mark') or contains(.,'mark') or contains(.,'Marque') or contains(.,'marque')]//following-sibling::td))
+						then (normalize-space(//ol[contains(@class,'breadcrumb')]//li[not(contains(.,'Accueil'))][2]))
+						else if((normalize-space(//ol[contains(@class,'breadcrumb')]//li[not(contains(.,'Accueil'))][1])) eq (normalize-space(//h1[contains(@class,'product-title')])))
+						then (normalize-space(//ol[contains(@class,'breadcrumb')]//li[not(contains(.,'Accueil'))][2]))
+						else (normalize-space(//ol[contains(@class,'breadcrumb')]//li[not(contains(.,'Accueil'))][1]))"/>
+							
+							<entry key="bread_crumb2" value="if((normalize-space(//ol[contains(@class,'breadcrumb')]//li[not(contains(.,'Accueil'))][2])) eq normalize-space(//div[contains(@id,'details-technique')]//td[contains(.,'Mark') or contains(.,'mark') or contains(.,'Marque') or contains(.,'marque')]//following-sibling::td))
+						then (normalize-space(//ol[contains(@class,'breadcrumb')]//li[not(contains(.,'Accueil'))][3]))
+						else if((normalize-space(//ol[contains(@class,'breadcrumb')]//li[not(contains(.,'Accueil'))][2])) eq (normalize-space(//h1[contains(@class,'product-title')])))
+						then (normalize-space(//ol[contains(@class,'breadcrumb')]//li[not(contains(.,'Accueil'))][3]))
+						else (normalize-space(//ol[contains(@class,'breadcrumb')]//li[not(contains(.,'Accueil'))][2]))"/>
+							
+							<entry key="bread_crumb3" value="if((normalize-space(//ol[contains(@class,'breadcrumb')]//li[not(contains(.,'Accueil'))][3])) eq normalize-space(//div[contains(@id,'details-technique')]//td[contains(.,'Mark') or contains(.,'mark') or contains(.,'Marque') or contains(.,'marque')]//following-sibling::td))
+						then (normalize-space(//ol[contains(@class,'breadcrumb')]//li[not(contains(.,'Accueil'))][4]))
+						else if((normalize-space(//ol[contains(@class,'breadcrumb')]//li[not(contains(.,'Accueil'))][3])) eq (normalize-space(//h1[contains(@class,'product-title')])))
+						then (normalize-space(//ol[contains(@class,'breadcrumb')]//li[not(contains(.,'Accueil'))][4]))
+						else (normalize-space(//ol[contains(@class,'breadcrumb')]//li[not(contains(.,'Accueil'))][3]))"/>
+							
+							<entry key="image_url" value="//div[contains(@class,'img-wrapper')]//img/@src"/>
+							
+							<entry key="list_price" value=""/>
+							
+							<entry key="our_price" value="//div[contains(@class,'product-price')]//b[contains(@class,'product-price-value')]"/>
+														
+							<entry key="shipping_information" value="(//div[contains(@class,'service-desc')])[2]"/>	
+							
+							<entry key="specifications" value="//div[contains(@class,'details-technique')]//td"/>	
+
+							<entry key="product_description" value="if(//div[contains(@id,'details-description-container')]) then(//div[contains(@id,'details-description-container')]) else(//div[contains(@class,'product-desc')])"/>	
+
+							<entry key="bullet_points" value="normalize-space(//div[contains(@class,'details-content')])"/>
+
+							<entry key="offering_availability" value="if(//span[contains(@class,'product-stock')][contains(.,'En stock')]) then ('In Stock') else ('Out of Stock')"/>
+							
+							<entry key="item_sale_status" value="if(//tr[contains(@class,'ProductBuyBox')]//h4[contains(.,'Indisponible') or contains(.,'indisponible') or contains(.,'disponible') or contains(.,'Disponible')])        then (//tr[contains(@class,'ProductBuyBox')]//h4[contains(.,'Indisponible') or contains(.,'indisponible') or contains(.,'disponible') or contains(.,'Disponible')]) else ''"/>
+							
+							<entry key="obs_indicator" value="if(//tr[contains(@class,'ProductBuyBox')]//h4[contains(.,'Indisponible') or contains(.,'indisponible')])        then ('Indisponible') else ''"/>
+							
+							<entry key="has_retail_offer" value="if(//span[contains(@class,'seller')][contains(.,'Vendu par')][contains(.,'Odera') or contains(.,'odera')]) then 'Y' else 'N'"/>
+                           
+            				<entry key="url" value="//meta/@sourceurl"/>
+                            <!--<entry key="url" value="//link[contains(@rel,'canonical')]/@href" />-->
+							
+							<entry key="item_package_quantity" value="(//div[contains(@id,'details-content-table')]//td[contains(.,'Pièces') or contains(.,'pièces')]//following-sibling::td)[matches(.,'\d+')]"/>
+							
+							<entry key="temp_item_weight" value="(if(substring-after(//div[contains(@id,'details-description-container')]//li[contains(.,'Poids')],'Poids:')) then(substring-after(//div[contains(@id,'details-description-container')]//li[contains(.,'Poids')],'Poids:')) 
+							else if(substring-before(substring-after(//div[contains(@id,'details-description-container')]//li[contains(.,'Poids')],'Poids :'),'.'))
+							then (substring-before(substring-after(//div[contains(@id,'details-description-container')]//li[contains(.,'Poids')],'Poids :'),'.'))
+							else if(substring-after(//div[contains(@id,'details-description-container')]//div[contains(.,'Poids')][not(contains(.,'0 kg'))],'Poids :'))
+							then (substring-after(//div[contains(@id,'details-description-container')]//div[contains(.,'Poids')][not(contains(.,'0 kg'))],'Poids :'))
+							else if(substring-before(substring-after(//div[contains(@id,'details-description-container')]//p[contains(.,'Poids')][not(contains(.,'0 kg'))],'Poids : '),'.'))
+							then (substring-before(substring-after(//div[contains(@id,'details-description-container')]//p[contains(.,'Poids')][not(contains(.,'0 kg'))],'Poids : '),'.'))
+							else if(substring-before(substring-after(//div[contains(@id,'details-description-container')]//li[contains(.,'Poids')][not(contains(.,'0 kg'))],'Poids : '),'.'))
+							then (substring-before(substring-after(//div[contains(@id,'details-description-container')]//li[contains(.,'Poids')][not(contains(.,'0 kg'))],'Poids : '),'.'))
+							else (//div[contains(@id,'details-content-table')]//td[contains(.,'Poids') or contains(.,'poinds')]//following-sibling::td[not(contains(.,'0 kg'))]))"/>
+							
+							<entry key="merchants" value="normalize-space(//div[contains(@class,'seller-name')])"/>
+							
+							<entry key="merchant_name" value="normalize-space(//div[contains(@class,'seller-name')])"/>
+							
+							<entry key="color_name" value="if(substring-after(//li[contains(.,'Couleur:')],':'))
+							then (substring-after(//li[contains(.,'Couleur:')],':'))
+							else if(substring-after(//div[contains(@class,'product-desc')]//li[contains(.,'couleur')],'couleur :'))
+							then (substring-after(//div[contains(@class,'product-desc')]//li[contains(.,'couleur')],'couleur :'))
+							else if(//div[contains(@id,'details-technique-container')]//td[contains(.,'Couleur')]//following-sibling::td)
+							then (//div[contains(@id,'details-technique-container')]//td[contains(.,'Couleur')]//following-sibling::td)
+							else if(substring-after(//div[contains(@id,'details-description-container')]//li[contains(.,'Coloris')],'Coloris :'))
+							then (substring-after(//div[contains(@id,'details-description-container')]//li[contains(.,'Coloris')],'Coloris :'))
+							else if(substring-before(normalize-space(substring-after(//div[contains(@id,'details-description-container')][contains(.,'Couleur')],'Couleur:')),' '))	then (substring-before(normalize-space(substring-after(//div[contains(@id,'details-description-container')][contains(.,'Couleur')],'Couleur:')),' '))
+							 else if(substring-before(normalize-space(substring-after(//div[contains(@id,'details-description-container')][contains(.,'Couleur')],'Couleur:')),'-'))
+							then (substring-before(normalize-space(substring-after(//div[contains(@id,'details-description-container')][contains(.,'Couleur')],'Couleur:')),'-'))
+							else(normalize-space(substring-after(//div[contains(@id,'details-desc')]//p[contains(.,'Couleur:')],'Couleur:')))"/>
+							
+							<entry key="size_name" value="if(substring-after(//div[contains(@id,'details-description-container')]//li[contains(.,'Taille:')],'Taille:'))
+							then (substring-after(//div[contains(@id,'details-description-container')]//li[contains(.,'Taille:')],'Taille:'))
+							else if(normalize-space(substring-after(//div[contains(@id,'details-desc')][contains(.,'Taille: ')],'Taille:')))
+							then (normalize-space(substring-after(//div[contains(@id,'details-desc')][contains(.,'Taille: ')],'Taille:')))
+							else if(substring-after(//div[contains(@id,'details-description-container')]//li[contains(.,'Dimensions')],'Dimensions:'))
+							then (substring-after(//div[contains(@id,'details-description-container')]//li[contains(.,'Dimensions')],'Dimensions:'))
+							else if(substring-after(//div[contains(@id,'details-description-container')]//li[contains(.,'Dim')],'Dim. :'))
+							then (substring-after(//div[contains(@id,'details-description-container')]//li[contains(.,'Dim')],'Dim. :'))
+							else if(substring-before(substring-after(//div[contains(@id,'details-description-container')]//li[contains(.,'Contenance')],'Contenance :'),'.'))
+							then (substring-before(substring-after(//div[contains(@id,'details-description-container')]//li[contains(.,'Contenance')],'Contenance :'),'.'))
+							else (//div[contains(@id,'details-technique')]//td[contains(.,'Contenance')]//following-sibling::td)"/>
+							
+							<entry key="material_type" value="substring-after(//div[contains(@id,'details-desc')]//li[contains(.,'Matériau:')],'Matériau:')"/>
+							
+							<entry key="is_refurbished" value="if(lower-case(//h1[contains(@class,'product-title')])[contains(.,'reconditionné') or contains(.,'comme neuf')]) then 'Y' else if(//h1[contains(@class,'product-title')][contains(.,'Reconditionné')]) then 'Y' else 'N' "/>
+						
+							<entry key="is_bestseller" value="if(let $maxpath := max((for $i in (tokenize(replace(replace(replace(replace(//meta//@rankinfo,'/','>'),'[>]+','>'),'>&quot;,','&quot;,'),'pageNumber&quot;:null,','pageNumber&quot;:1,'),'&quot;rankScope&quot;:&quot;')[contains(.,'&quot;relativeRank&quot;') and contains(.,'&quot;pageItemCount&quot;:') and contains(.,'&quot;pageNumber&quot;:')]) return concat(count(distinct-values(tokenize(substring-before($i,'&quot;,&quot;'),'>')[normalize-space()])),':::',(((substring-before(substring-after($i,'&quot;pageNumber&quot;:'),',')-1)*40) + replace(substring-before(substring-after($i,'&quot;relativeRank&quot;:'),'}'),'([0-9]+).*','$1')),'$$$',$i))[not(contains(.,'NaN'))][normalize-space()])
+
+							return (if(//html[$maxpath]) then (let $pathValue := substring-before($maxpath,':::') return let $rankValue := substring-after(substring-before($maxpath,'$$$'),':::') return min(for $j in (tokenize(replace(replace(replace(replace(//meta//@rankinfo,'/','>'),'[>]+','>'),'>&quot;,','&quot;,'),'pageNumber&quot;:null,','pageNumber&quot;:1,'),'&quot;rankScope&quot;:&quot;')[contains(.,'&quot;relativeRank&quot;') and contains(.,'&quot;pageItemCount&quot;:') and contains(.,'&quot;pageNumber&quot;:')]) return (if((count(distinct-values(tokenize(substring-before($j,'&quot;,&quot;'),'>')[normalize-space()]))>=$pathValue) and ($rankValue>=((((substring-before(substring-after($j,'&quot;pageNumber&quot;:'),',')-1)*40) + replace(substring-before(substring-after($j,'&quot;relativeRank&quot;:'),'}'),'([0-9]+).*','$1'))[not(contains(.,'NaN'))]))) then (concat((((substring-before(substring-after($j,'&quot;pageNumber&quot;:'),',')-1)*40) + replace(substring-before(substring-after($j,'&quot;relativeRank&quot;:'),'}'),'([0-9]+).*','$1')),'$$$',$j)) else '') [not(contains(.,'NaN'))][not(starts-with(.,'$$$'))][not(contains(.,'$$$&quot;,&quot;'))][normalize-space()])) else '' )) then 'TBD' else ''" />
+                        												
+							<entry key="bestseller_rank" value="substring-before((let $maxpath := max((for $i in (tokenize(replace(replace(replace(replace(//meta//@rankinfo,'/','>'),'[>]+','>'),'>&quot;,','&quot;,'),'pageNumber&quot;:null,','pageNumber&quot;:1,'),'&quot;rankScope&quot;:&quot;')[contains(.,'&quot;relativeRank&quot;') and contains(.,'&quot;pageItemCount&quot;:') and contains(.,'&quot;pageNumber&quot;:')]) return concat(count(distinct-values(tokenize(substring-before($i,'&quot;,&quot;'),'>')[normalize-space()])),':::',(((substring-before(substring-after($i,'&quot;pageNumber&quot;:'),',')-1)*40) + replace(substring-before(substring-after($i,'&quot;relativeRank&quot;:'),'}'),'([0-9]+).*','$1')),'$$$',$i))[not(contains(.,'NaN'))][normalize-space()])
+
+							return (if(//html[$maxpath]) then (let $pathValue := substring-before($maxpath,':::') return let $rankValue := substring-after(substring-before($maxpath,'$$$'),':::') return min(for $j in (tokenize(replace(replace(replace(replace(//meta//@rankinfo,'/','>'),'[>]+','>'),'>&quot;,','&quot;,'),'pageNumber&quot;:null,','pageNumber&quot;:1,'),'&quot;rankScope&quot;:&quot;')[contains(.,'&quot;relativeRank&quot;') and contains(.,'&quot;pageItemCount&quot;:') and contains(.,'&quot;pageNumber&quot;:')]) return (if((count(distinct-values(tokenize(substring-before($j,'&quot;,&quot;'),'>')[normalize-space()]))>=$pathValue) and ($rankValue>=((((substring-before(substring-after($j,'&quot;pageNumber&quot;:'),',')-1)*40) + replace(substring-before(substring-after($j,'&quot;relativeRank&quot;:'),'}'),'([0-9]+).*','$1'))[not(contains(.,'NaN'))]))) then (concat((((substring-before(substring-after($j,'&quot;pageNumber&quot;:'),',')-1)*40) + replace(substring-before(substring-after($j,'&quot;relativeRank&quot;:'),'}'),'([0-9]+).*','$1')),'$$$',$j)) else '') [not(contains(.,'NaN'))][not(starts-with(.,'$$$'))][not(contains(.,'$$$&quot;,&quot;'))][normalize-space()])) else '' )),'$$$')" />
+							
+							
+							<entry key="bestseller_category" value="substring-before(substring-after((let $maxpath := max((for $i in (tokenize(replace(replace(replace(replace(//meta//@rankinfo,'/','>'),'[>]+','>'),'>&quot;,','&quot;,'),'pageNumber&quot;:null,','pageNumber&quot;:1,'),'&quot;rankScope&quot;:&quot;')[contains(.,'&quot;relativeRank&quot;') and contains(.,'&quot;pageItemCount&quot;:') and contains(.,'&quot;pageNumber&quot;:')]) return concat(count(distinct-values(tokenize(substring-before($i,'&quot;,&quot;'),'>')[normalize-space()])),':::',(((substring-before(substring-after($i,'&quot;pageNumber&quot;:'),',')-1)*40) + replace(substring-before(substring-after($i,'&quot;relativeRank&quot;:'),'}'),'([0-9]+).*','$1')),'$$$',$i))[not(contains(.,'NaN'))][normalize-space()])
+
+							return (if(//html[$maxpath]) then (let $pathValue := substring-before($maxpath,':::') return let $rankValue := substring-after(substring-before($maxpath,'$$$'),':::') return min(for $j in (tokenize(replace(replace(replace(replace(//meta//@rankinfo,'/','>'),'[>]+','>'),'>&quot;,','&quot;,'),'pageNumber&quot;:null,','pageNumber&quot;:1,'),'&quot;rankScope&quot;:&quot;')[contains(.,'&quot;relativeRank&quot;') and contains(.,'&quot;pageItemCount&quot;:') and contains(.,'&quot;pageNumber&quot;:')]) return (if((count(distinct-values(tokenize(substring-before($j,'&quot;,&quot;'),'>')[normalize-space()]))>=$pathValue) and ($rankValue>=((((substring-before(substring-after($j,'&quot;pageNumber&quot;:'),',')-1)*40) + replace(substring-before(substring-after($j,'&quot;relativeRank&quot;:'),'}'),'([0-9]+).*','$1'))[not(contains(.,'NaN'))]))) then (concat((((substring-before(substring-after($j,'&quot;pageNumber&quot;:'),',')-1)*40) + replace(substring-before(substring-after($j,'&quot;relativeRank&quot;:'),'}'),'([0-9]+).*','$1')),'$$$',$j)) else '') [not(contains(.,'NaN'))][not(starts-with(.,'$$$'))][not(contains(.,'$$$&quot;,&quot;'))][normalize-space()])) else '' )),'$$$'),'&quot;,&quot;')" />
+			</util:map>
+		</constructor-arg>
+	</bean>
+	<!--In this section data manipulation is done to extract data from a particular data point using Regular Expression -->
+	<util:map id="NORMALIZERS">
+		<entry key="PRODUCT_DETAIL_PAGE" value-ref="DETAIL_PAGE_SCRAPE_NORMALIZER" />
+	</util:map>
+	<bean id="DETAIL_PAGE_SCRAPE_NORMALIZER" class="amazon.smt.scrape.normalizer.ScrapeDataNormalizerChain">
+		<constructor-arg index="0">
+			<util:list>
+			
+				<bean class="amazon.smt.scrape.normalizer.RegexScrapedDataNormalizer">
+    					<constructor-arg index="0" value="website_sku"/>
+    					<constructor-arg index="1" value="url"/>
+    					<constructor-arg index="2" value=".*\-([0-9]+)"/>
+    				</bean>
+				
+				<bean class="amazon.smt.scrape.normalizer.BrandExtractionNormalizer">
+                            <constructor-arg index="0" value="title"/>
+                            <constructor-arg index="1" value="/apollo/env/SMTScraperConfiguration/var/smt-scrape-config/resources/odero-fr-repo.txt"/>
+                            <property name="outputPrefixBrandOnly" value="false"/>
+                        </bean>
+						
+					<bean class="amazon.smt.scrape.normalizer.RegexScrapedDataNormalizer">
+						<constructor-arg index="0" value="item_weight"/>
+						<constructor-arg index="1" value="temp_item_weight"/>
+						<constructor-arg index="2" value="[x]\s([0-9]+\s[Kk][Gg])|[x]\s([0-9]+\s[Gg][Mm])|[x]\s([0-9]+\s[Mm][Gg])|[x]\s([0-9]+\s[Gg])|([0-9,\/]+\s[Kk][Gg])|([0-9,\/]+\s[Gg][Mm])|([0-9,\/]+\s[Mm][Gg])|([0-9,\/]+\s[Gg])"/>
+					</bean>
+				
+			</util:list>
+		</constructor-arg>
+	</bean>
+</beans>
